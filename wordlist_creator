@@ -1,0 +1,137 @@
+#!/bin/bash
+set -xv
+
+#Ana form
+bilgiler=$(zenity --forms --title="Wordlist Creator" \
+	--text="Aşağıdaki bilgileri doludurunuz." \
+	--separator=":" \
+	--add-entry="Ad" \
+	--add-entry="Soyad" \
+	--add-entry="Takma Ad" \
+	--add-entry="Ekstra 1" \
+	--add-entry="Ekstra 2" \
+	--add-entry="Ekstra 3" \
+	--add-entry="Ekstra 4" \
+	--add-calendar="Doğum Tarihi")
+#Özel karakterler formu
+ozel_karakterler=$(zenity --width=200 --height=225 --list \
+	--text="Özel karakterlerden kullanmak istedikleriniz seçin" \
+	--checklist --column=Seç --column="Özel işaretler" \
+	 False "Yıldız( * )" \
+	 False "Nokta( . )" \
+	 False "Virgül( , )" \
+	 False "Ünlem( ! )" \
+	 False "Soru İşareti( ? )" );
+
+case $? in
+    0)
+        echo "Wordlist Hazırlanıyor.";;
+    1)
+        echo "Başarısız."
+	;;
+    -1)
+        echo "Bir hata oluştu."
+	;;
+esac
+
+#Bilgiler değişkene alınıyor
+ad1=$(echo $bilgiler | cut -d':' -f1 | cut -d' ' -f1); 
+ad2=$(echo $bilgiler | cut -d':' -f1 | cut -d' ' -f2);
+ad3=$(echo $bilgiler | cut -d':' -f1 | cut -d' ' -f3);
+soyad=$(echo $bilgiler | cut -d':' -f2);
+nick=$(echo $bilgiler | cut -d':' -f3);
+ekstra1=$(echo $bilgiler | cut -d':' -f4);
+ekstra2=$(echo $bilgiler | cut -d':' -f5);
+ekstra3=$(echo $bilgiler | cut -d':' -f6);
+ekstra4=$(echo $bilgiler | cut -d':' -f7);
+gun=$(echo $bilgiler | cut -d':' -f8 | cut -d'-' -f1);
+ay=$(echo $bilgiler | cut -d':' -f8 | cut -d'-' -f2);
+yil=$(echo $bilgiler | cut -d':' -f8 | cut -d'-' -f3);
+yil2=${yil:2:2}; #94 gibi kısım
+ozel1=$(echo "$ozel_karakterler" | cut -d'|' -f1 );
+ozel2=$(echo "$ozel_karakterler" | cut -d'|' -f2 );
+ozel3=$(echo "$ozel_karakterler" | cut -d'|' -f3 );
+ozel4=$(echo "$ozel_karakterler" | cut -d'|' -f4 );
+ozel5=$(echo "$ozel_karakterler" | cut -d'|' -f5 );
+
+#Değerler dolu veya boş olmasına bağlı olarak arraya yazılıyor
+x=1;
+if [ ! -z "$ad1" ]; then bilgi[$x]=$ad1; x=$((x+1)); fi
+if [ ! -z "$ad2" ]; then bilgi[$x]=$ad2; x=$((x+1)); fi
+if [ ! -z "$ad3" ]; then bilgi[$x]=$ad3; x=$((x+1)); fi	
+if [ ! -z "$soyad" ]; then bilgi[$x]=$soyad; x=$((x+1)); fi
+if [ ! -z "$nick" ]; then bilgi[$x]=$nick; x=$((x+1)); fi
+if [ ! -z "$ekstra1" ]; then bilgi[$x]=$ekstra1; x=$((x+1)); fi
+if [ ! -z "$ekstra2" ]; then bilgi[$x]=$ekstra2; x=$((x+1)); fi
+if [ ! -z "$ekstra3" ]; then bilgi[$x]=$ekstra3; x=$((x+1)); fi
+if [ ! -z "$ekstra4" ]; then bilgi[$x]=$ekstra4; x=$((x+1)); fi
+if [ ! -z "$gun" ]; then bilgi[$x]=$gun; x=$((x+1)); fi
+if [ ! -z "$ay" ]; then bilgi[$x]=$ay; x=$((x+1)); fi
+if [ ! -z "$yil" ]; then bilgi[$x]=$yil; x=$((x+1)); fi
+if [ ! -z "$yil2" ]; then bilgi[$x]=$yil2; x=$((x+1)); fi
+#Özel karakterler kontrol ediliyor
+y=1
+if [ ! -z "$ozel1" ]; then char[$y]=$ozel1; y=$((y+1)); fi
+if [ ! -z "$ozel2" ]; then char[$y]=$ozel2; y=$((y+1)); fi
+if [ ! -z "$ozel3" ]; then char[$y]=$ozel3; y=$((y+1)); fi
+if [ ! -z "$ozel4" ]; then char[$y]=$ozel4; y=$((y+1)); fi
+if [ ! -z "$ozel5" ]; then char[$y]=$ozel5; y=$((y+1)); fi
+#Var olan wordlist siliniyor. Ve yeniden oluşturuluyor
+[ -d wordlist.txt ] || rm wordlist.txt 
+touch wordlist.txt
+
+
+
+for (( b = 1; b < $y; b++ )); do
+	if [ ${char[$b]} == "Yıldız( * )" ] then; karakter[$b]="1"; fi
+	if [ ${char[$b]} == "Nokta( . )" ] then; karakter[$b]="2"; fi
+	if [ ${char[$b]} == "Virgül( , )" ] then; karakter[$b]="3"; fi
+	if [ ${char[$b]} == "Ünlem( ! )" ] then; karakter[$b]="4"; fi
+	if [ ${char[$b]} == "Soru İşareti( ? )" ] then; karakter[$b]="5"; fi
+	case ${karakter[$b]} in
+		1)
+		for (( i = 1; i < $x; i++ )); do
+			for (( j = 1; j < $x; j++ )); do
+				echo "${bilgi[$i]}*${bilgi[$j]}" >> "/home/$USER/wordlist.txt"
+			done
+		done
+		;;
+		2)
+		for (( i = 1; i < $x; i++ )); do
+			for (( j = 1; j < $x; j++ )); do
+				echo "${bilgi[$i]}.${bilgi[$j]}" >> "/home/$USER/wordlist.txt"
+			done
+		done
+		;;
+		3)
+		for (( i = 1; i < $x; i++ )); do
+			for (( j = 1; j < $x; j++ )); do
+				echo "${bilgi[$i]},${bilgi[$j]}" >> "/home/$USER/wordlist.txt"
+			done
+		done
+		;;
+		4)
+		for (( i = 1; i < $x; i++ )); do
+			for (( j = 1; j < $x; j++ )); do
+				echo "${bilgi[$i]}!${bilgi[$j]}" >> "/home/$USER/wordlist.txt"
+			done
+		done
+		;;
+		5)
+		for (( i = 1; i < $x; i++ )); do
+			for (( j = 1; j < $x; j++ )); do
+				echo "${bilgi[$i]}?${bilgi[$j]}" >> "/home/$USER/wordlist.txt"
+			done
+		done
+		;;
+	esac
+done
+
+
+
+
+
+
+
+#BÜYÜK KÜÇÜK HARF EKLENECEK
+#sesli harfleri kaldır
